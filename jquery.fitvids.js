@@ -8,11 +8,35 @@
 *
 */
 
-;(function( $ ){
+;(function(window){
 
   'use strict';
 
-  $.fn.fitVids = function( options ) {
+  function extend(){
+    for(var i=1; i<arguments.length; i++) {
+      for(var key in arguments[i]) {
+        if(arguments[i].hasOwnProperty(key)) {
+          arguments[0][key] = arguments[i][key];
+        }
+      }
+    }
+    return arguments[0];
+  }
+
+  function matches(element, selector){
+    var matchFn = Element.prototype.matches ||
+        Element.prototype.matchesSelector ||
+        Element.prototype.webkitMatchesSelector ||
+        Element.prototype.msMatchesSelector ||
+        function(selector) {
+          var node = this, nodes = (node.parentNode || node.document).querySelectorAll(selector), i = -1;
+          while (nodes[++i] && nodes[i] != node);
+          return !!nodes[i];
+        };
+    return matchFn.call(element, selector);
+  }
+
+  var fitVids = function( elementSelector, options ) {
     var settings = {
       customSelector: null,
       ignore: null
@@ -28,10 +52,14 @@
     }
 
     if ( options ) {
-      $.extend( settings, options );
+      settings = extend( settings, options );
     }
 
-    return this.each(function(){
+    var elements = document.querySelectorAll(elementSelector);
+    var element;
+    for(var i = 0; i < elements.length; i++){
+      element = elements[i];
+
       var selectors = [
         'iframe[src*="player.vimeo.com"]',
         'iframe[src*="youtube.com"]',
@@ -51,32 +79,51 @@
         ignoreList = ignoreList + ', ' + settings.ignore;
       }
 
-      var $allVideos = $(this).find(selectors.join(','));
-      $allVideos = $allVideos.not('object object'); // SwfObj conflict patch
-      $allVideos = $allVideos.not(ignoreList); // Disable FitVids on this video.
+      var allVideos = element.querySelectorAll(selectors.join(','));
+      console.log(selectors.join(','), allVideos);
+      allVideos = Array.prototype.slice.call(allVideos);
+      for(var j = allVideos.length - 1; j >= 0; j--){
+        if(matches(allVideos[j], 'object object') || matches(allVideos[j], ignoreList)){
+          allVideos.splice(j, 1);
+        }
+      }
 
-      $allVideos.each(function(count){
-        var $this = $(this);
-        if($this.parents(ignoreList).length > 0) {
-          return; // Disable FitVids on this video.
+      console.log(allVideos);
+
+      var video;
+      for(var j = 0; j < allVideos.length; j++) {
+        video = allVideos[j];
+        if(matches(video.parentNode, ignoreList)) {
+          continue; // Disable FitVids on this video.
         }
-        if (this.tagName.toLowerCase() === 'embed' && $this.parent('object').length || $this.parent('.fluid-width-video-wrapper').length) { return; }
-        if ((!$this.css('height') && !$this.css('width')) && (isNaN($this.attr('height')) || isNaN($this.attr('width'))))
+
+        if (video.tagName.toLowerCase() === 'embed' && matches(video.parentNode, 'object') || matches(video.parentElement, '.fluid-width-video-wrapper')) { continue; }
+        if ((!video.style.height && !video.style.width) && (isNaN(video.getAttribute('height')) || isNaN(video.getAttribute('width'))))
         {
-          $this.attr('height', 9);
-          $this.attr('width', 16);
+          video.setAttribute('height', 9);
+          video.setAttribute('width', 16);
         }
-        var height = ( this.tagName.toLowerCase() === 'object' || ($this.attr('height') && !isNaN(parseInt($this.attr('height'), 10))) ) ? parseInt($this.attr('height'), 10) : $this.height(),
-            width = !isNaN(parseInt($this.attr('width'), 10)) ? parseInt($this.attr('width'), 10) : $this.width(),
+
+        var height = ( video.tagName.toLowerCase() === 'object' || (video.getAttribute('height') && !isNaN(parseInt(video.getAttribute('height'), 10))) ) ? parseInt(video.getAttribute('height'), 10) : video.offsetHeight,
+            width = !isNaN(parseInt(video.getAttribute('width'), 10)) ? parseInt(video.getAttribute('width'), 10) : video.offsetWidth,
             aspectRatio = height / width;
-        if(!$this.attr('id')){
-          var videoID = 'fitvid' + count;
-          $this.attr('id', videoID);
+        if(!video.getAttribute('id')){
+          var videoID = 'fitvid' + j;
+          video.setAttribute('id', videoID);
         }
-        $this.wrap('<div class="fluid-width-video-wrapper"></div>').parent('.fluid-width-video-wrapper').css('padding-top', (aspectRatio * 100)+'%');
-        $this.removeAttr('height').removeAttr('width');
-      });
-    });
+
+        var wrapper = document.createElement('div');
+        wrapper.className = 'fluid-width-video-wrapper';
+
+        video.parentNode.insertBefore(wrapper, video);
+        wrapper.appendChild(video);
+        wrapper.style.paddingTop = (aspectRatio * 100)+'%';
+
+        video.removeAttribute('height');
+        video.removeAttribute('width');
+      }
+    }
   };
-// Works with either jQuery or Zepto
-})( window.jQuery || window.Zepto );
+
+  window.fitVids = fitVids;
+})(window);

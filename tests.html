@@ -73,9 +73,11 @@
       <script src="jquery.fitvids.js"></script>
       <script>
         // Basic FitVids Test
-        $(".container").fitVids();
+        fitVids(".container");
         // Custom selector and No-Double-Wrapping Prevention Test
-        $(".container").fitVids({ customSelector: "iframe[src^='http://socialcam.com']"});
+        fitVids(".container", {
+            customSelector: "iframe[src^='http://socialcam.com']"
+        });
       </script>
       </body>
   </html>
