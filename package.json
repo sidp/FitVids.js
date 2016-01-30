@@ -1,0 +1,25 @@
+{
+  "name": "fitvids.js",
+  "version": "1.1.0",
+  "description": "A lightweight, easy-to-use jQuery plugin for fluid width video embeds.",
+  "main": "fitvids.js",
+  "scripts": {
+    "build": "webpack",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sidp/FitVids.js.git"
+  },
+  "author": "Dave Rupert <rupato@gmail.com>",
+  "license": "WTFPL",
+  "bugs": {
+    "url": "https://github.com/sidp/FitVids.js/issues"
+  },
+  "homepage": "https://github.com/sidp/FitVids.js#readme",
+  "devDependencies": {
+    "babel-core": "^6.4.5",
+    "babel-loader": "^6.2.1",
+    "webpack": "^2.0.6-beta"
+  }
+}
